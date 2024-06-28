@@ -21,36 +21,32 @@ namespace ServicoApi
 
         public IConfiguration Configuration { get; }
 
+        // Startup.cs
+
         public void ConfigureServices(IServiceCollection services)
         {
-            // Configuração do DbContext com MySQL
-            services.AddDbContext<ServicoContext>(options =>
-                options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),
-                    ServerVersion.AutoDetect(Configuration.GetConnectionString("DefaultConnection"))));
+    
+            // Registro dos serviços
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ContratoService, ContratoService>();
 
-            // Configuração de autenticação JWT
+            // Configuração do JWT
+            var key = Encoding.ASCII.GetBytes(Configuration["JwtSettings:Secret"]);
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = "seu_issuer_aqui",
-                        ValidAudience = "seu_audience_aqui",
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("chave_secreta_aqui"))
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
                     };
                 });
 
-            // Configuração dos serviços de aplicação
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ContratoService>();
-
-            // Configurações adicionais, como MVC, CORS, etc.
             services.AddControllers();
         }
+
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {

@@ -1,4 +1,7 @@
-using System;
+// ContratoService.cs
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using ServicoApi.Data;
 using ServicoApi.Models;
 
@@ -13,18 +16,12 @@ namespace ServicoApi.Services
             _context = context;
         }
 
-        public void CriarContrato(int clienteId, int servicoId, decimal precoCobrado, DateTime dataContratacao)
+        public List<Contrato> GetContratosCliente(int clienteId)
         {
-            var contrato = new Contrato
-            {
-                ClienteId = clienteId,
-                ServicoId = servicoId,
-                PrecoCobrado = precoCobrado,
-                DataContratacao = dataContratacao
-            };
-
-            _context.Contratos.Add(contrato);
-            _context.SaveChanges();
+            return _context.Contratos
+                .Include(c => c.Servico)
+                .Where(c => c.ClienteId == clienteId)
+                .ToList();
         }
     }
 }
